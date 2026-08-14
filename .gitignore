@@ -1,0 +1,49 @@
+# Python / environment
+.venv/
+.neoroshnienv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build / test output
+coverage/
+coverage.xml
+.pycoverage
+htmlcov/
+
+# Database / local artifacts
+*.sqlite3
+*.db
+
+# Git metadata
+.git/
+
+# Project docs that are not source code
+# Keep docs tracked if you want them committed; remove this line if docs should be versioned.
+docs/
