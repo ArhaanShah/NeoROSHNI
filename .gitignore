@@ -35,6 +35,8 @@ frontend/coverage/
 coverage/
 coverage.xml
 .pycoverage
+.coverage
+.coverage.*
 htmlcov/
 
 # Database / local artifacts
