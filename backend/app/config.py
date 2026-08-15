@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     app_name: str = "NeoROSHNI"
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/neoroshni"
     environment: str = "development"
+    frontend_origin: str = "http://localhost:5173"
 
 
 settings = Settings()
