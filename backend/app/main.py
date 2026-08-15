@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.routers import auth, users
 
 app = FastAPI(title=settings.app_name)
 
@@ -22,3 +23,7 @@ def health_check() -> dict[str, str]:
 @app.get("/")
 def root() -> dict[str, str]:
     return {"message": settings.app_name}
+
+
+app.include_router(auth.router)
+app.include_router(users.router)
