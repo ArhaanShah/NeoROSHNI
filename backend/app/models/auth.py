@@ -14,6 +14,7 @@ from sqlalchemy import (
     JSON,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.dialects.postgresql import UUID
@@ -58,12 +59,10 @@ class User(Base):
         cascade="all, delete-orphan",
     )
 
-    # Note: uniqueness for email/phone_number is enforced by the unique
-    # indexes below. We don't also add UniqueConstraint objects for these,
-    # since a UniqueConstraint would just create a second, redundant unique
-    # index under the hood in Postgres.
     __table_args__ = (
         CheckConstraint("role IN ('civilian', 'responder', 'commander')", name="ck_users_role"),
+        UniqueConstraint("email", name="uq_user_email"),
+        UniqueConstraint("phone_number", name="uq_user_phone_number"),
         Index("ix_users_email", "email", unique=True),
         Index("ix_users_phone_number", "phone_number", unique=True),
     )
@@ -119,6 +118,7 @@ class UserMedicalProfile(Base):
     user: Mapped[User] = relationship(back_populates="medical_profile")
 
     __table_args__ = (
+        UniqueConstraint("public_user_code", name="uq_user_medical_profiles_public_user_code"),
         Index("ix_user_medical_profiles_public_user_code", "public_user_code", unique=True),
     )
 
@@ -152,5 +152,6 @@ class RefreshToken(Base):
     user: Mapped[User] = relationship(back_populates="refresh_tokens")
 
     __table_args__ = (
+        UniqueConstraint("token_hash", name="uq_refresh_tokens_token_hash"),
         Index("ix_refresh_tokens_token_hash", "token_hash", unique=True),
     )

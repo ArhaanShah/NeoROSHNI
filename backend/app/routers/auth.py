@@ -111,7 +111,11 @@ async def refresh(payload: RefreshRequest, db: AsyncSession = Depends(get_db)) -
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token revoked")
 
     now = datetime.now(UTC)
-    if token_record.expires_at <= now:
+    expires_at = token_record.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=UTC)
+
+    if expires_at <= now:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token expired")
 
     user = await db.get(User, token_record.user_id)
