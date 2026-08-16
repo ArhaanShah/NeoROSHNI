@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+
+from app.schemas.validators import validate_optional_phone_number, validate_phone_number
 
 
 class RegisterRequest(BaseModel):
@@ -10,6 +12,11 @@ class RegisterRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)
     phone_number: str = Field(min_length=8, max_length=32)
     full_name: str = Field(min_length=1, max_length=255)
+
+    @field_validator("phone_number")
+    @classmethod
+    def phone_number_is_e164(cls, value: str) -> str:
+        return validate_phone_number(value)
 
 
 class LoginRequest(BaseModel):
@@ -60,6 +67,11 @@ class UserProfileUpdateRequest(BaseModel):
     address: str | None = None
     emergency_contact_name: str | None = Field(default=None, max_length=255)
     emergency_contact_phone: str | None = Field(default=None, max_length=32)
+
+    @field_validator("emergency_contact_phone")
+    @classmethod
+    def emergency_contact_phone_is_e164(cls, value: str | None) -> str | None:
+        return validate_optional_phone_number(value)
 
 
 class UserMedicalProfileResponse(BaseModel):
