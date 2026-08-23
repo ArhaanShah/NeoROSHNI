@@ -203,6 +203,36 @@ describe('register()', () => {
 
     expect(result?.error).toMatch(/Unable to reach/i)
   })
+
+  it('formats 422 validation error arrays into human-readable strings', async () => {
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 422,
+      json: () =>
+        Promise.resolve({
+          detail: [
+            {
+              type: 'value_error',
+              loc: ['body', 'phone_number'],
+              msg: 'Value error, Phone number must be E.164 format',
+              input: '123',
+            },
+          ],
+        }),
+    } as unknown as Response)
+
+    const fd = new FormData()
+    fd.set('email', 'user@example.com')
+    fd.set('password', 'StrongPass123!')
+    fd.set('phone_number', '123')
+    fd.set('full_name', 'Test User')
+
+    const result = await register(fd)
+
+    expect(result).toEqual({
+      error: 'phone_number: Value error, Phone number must be E.164 format',
+    })
+  })
 })
 
 describe('logout()', () => {

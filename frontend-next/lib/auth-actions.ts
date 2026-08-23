@@ -50,6 +50,34 @@ async function clearAuthCookies(): Promise<void> {
   store.delete('refresh_token')
 }
 
+function extractErrorMessage(data: unknown, fallback: string): string {
+  if (typeof data === 'object' && data !== null && 'detail' in data) {
+    const detail = (data as { detail: unknown }).detail
+    if (typeof detail === 'string') {
+      return detail
+    }
+    if (Array.isArray(detail) && detail.length > 0) {
+      const messages = detail
+        .map((item) => {
+          if (typeof item === 'string') return item
+          if (typeof item === 'object' && item !== null && 'msg' in item) {
+            const loc = Array.isArray((item as { loc?: unknown[] }).loc)
+              ? (item as { loc: unknown[] }).loc.filter((l) => l !== 'body').join('.')
+              : ''
+            const msg = String((item as { msg: unknown }).msg)
+            return loc ? `${loc}: ${msg}` : msg
+          }
+          return null
+        })
+        .filter(Boolean)
+      if (messages.length > 0) {
+        return messages.join('; ')
+      }
+    }
+  }
+  return fallback
+}
+
 // ---------------------------------------------------------------------------
 // Public Server Actions
 // ---------------------------------------------------------------------------
@@ -82,8 +110,13 @@ export async function register(
   }
 
   if (!res.ok) {
-    const data = (await res.json()) as { detail?: string }
-    return { error: data.detail ?? 'Registration failed' }
+    let data: unknown
+    try {
+      data = await res.json()
+    } catch {
+      return { error: 'Registration failed' }
+    }
+    return { error: extractErrorMessage(data, 'Registration failed') }
   }
 
   const tokens = (await res.json()) as TokenPairResponse
@@ -117,8 +150,13 @@ export async function login(
   }
 
   if (!res.ok) {
-    const data = (await res.json()) as { detail?: string }
-    return { error: data.detail ?? 'Login failed' }
+    let data: unknown
+    try {
+      data = await res.json()
+    } catch {
+      return { error: 'Login failed' }
+    }
+    return { error: extractErrorMessage(data, 'Login failed') }
   }
 
   const tokens = (await res.json()) as TokenPairResponse
