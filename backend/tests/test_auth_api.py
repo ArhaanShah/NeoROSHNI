@@ -152,6 +152,129 @@ async def test_logout_revocation_blocks_refresh() -> None:
 
 
 @pytest.mark.asyncio
+async def test_commander_only_endpoint_returns_403_for_civilian() -> None:
+    """Civilian token must be denied a commander-only endpoint with 403."""
+    email = f"c4-cmd-{datetime.now(UTC).strftime('%Y%m%d%H%M%S%f')}@example.com"
+    phone = f"+1301{datetime.now(UTC).strftime('%f')}"
+
+    test_app = FastAPI()
+    test_app.include_router(auth.router)
+    test_app.include_router(users.router)
+
+    @test_app.get("/commander-only")
+    async def commander_only(_user=Depends(RoleChecker(["commander"]))) -> dict[str, str]:
+        return {"status": "ok"}
+
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        tokens = await _register(client, email, phone)
+
+        response = await client.get(
+            "/commander-only",
+            headers={"Authorization": f"Bearer {tokens['access_token']}"},
+        )
+        assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_multi_role_endpoint_returns_403_for_civilian() -> None:
+    """Civilian token is denied an endpoint requiring [responder, commander]."""
+    email = f"c4-multi-{datetime.now(UTC).strftime('%Y%m%d%H%M%S%f')}@example.com"
+    phone = f"+1302{datetime.now(UTC).strftime('%f')}"
+
+    test_app = FastAPI()
+    test_app.include_router(auth.router)
+    test_app.include_router(users.router)
+
+    @test_app.get("/staff-only")
+    async def staff_only(_user=Depends(RoleChecker(["responder", "commander"]))) -> dict[str, str]:
+        return {"status": "ok"}
+
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        tokens = await _register(client, email, phone)
+
+        response = await client.get(
+            "/staff-only",
+            headers={"Authorization": f"Bearer {tokens['access_token']}"},
+        )
+        assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_role_checker_allows_correct_role() -> None:
+    """Civilian token is allowed through a civilian-gated endpoint — 200."""
+    email = f"c4-allow-{datetime.now(UTC).strftime('%Y%m%d%H%M%S%f')}@example.com"
+    phone = f"+1303{datetime.now(UTC).strftime('%f')}"
+
+    test_app = FastAPI()
+    test_app.include_router(auth.router)
+    test_app.include_router(users.router)
+
+    @test_app.get("/civilian-only")
+    async def civilian_only(_user=Depends(RoleChecker(["civilian"]))) -> dict[str, str]:
+        return {"status": "ok"}
+
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        tokens = await _register(client, email, phone)
+
+        response = await client.get(
+            "/civilian-only",
+            headers={"Authorization": f"Bearer {tokens['access_token']}"},
+        )
+        assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_responder_gets_403_on_commander_endpoint() -> None:
+    """A responder-role token is denied a commander-only endpoint with 403."""
+    from app.core.security import create_access_token, hash_password
+    from app.database import db_session_factory
+    from app.models.auth import User, UserMedicalProfile, UserProfile
+
+    # Insert a responder user directly (bypassing the civilian-only register endpoint)
+    async with db_session_factory() as db:
+        responder = User(
+            email=f"c4-resp-{datetime.now(UTC).strftime('%Y%m%d%H%M%S%f')}@example.com",
+            hashed_password=hash_password("Test1234!"),
+            phone_number=f"+1304{datetime.now(UTC).strftime('%f')}",
+            role="responder",
+            is_active=True,
+        )
+        db.add(responder)
+        await db.flush()
+        responder_id = responder.user_id
+        db.add(UserProfile(user_id=responder_id, full_name="Test Responder"))
+        db.add(
+            UserMedicalProfile(
+                user_id=responder_id,
+                public_user_code=f"R-{responder_id}",
+                consent_flags={},
+            )
+        )
+        await db.commit()
+
+    responder_token = create_access_token(responder_id, "responder")
+
+    test_app = FastAPI()
+    test_app.include_router(auth.router)
+    test_app.include_router(users.router)
+
+    @test_app.get("/commander-only-2")
+    async def commander_only_2(_user=Depends(RoleChecker(["commander"]))) -> dict[str, str]:
+        return {"status": "ok"}
+
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.get(
+            "/commander-only-2",
+            headers={"Authorization": f"Bearer {responder_token}"},
+        )
+        assert response.status_code == 403
+
+
+@pytest.mark.asyncio
 async def test_role_checker_returns_403_for_wrong_role() -> None:
     email = f"c2-role-{datetime.now(UTC).strftime('%Y%m%d%H%M%S%f')}@example.com"
     phone = f"+1222{datetime.now(UTC).strftime('%f')}"
