@@ -17,13 +17,6 @@ from app.main import app
 from app.routers import auth, users
 
 
-@pytest.fixture(scope="session")
-def event_loop() -> asyncio.AbstractEventLoop:
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
 async def _register(client: AsyncClient, email: str, phone_number: str) -> dict:
     response = await client.post(
         "/auth/register",

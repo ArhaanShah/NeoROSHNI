@@ -25,6 +25,11 @@ node_modules/
 frontend/dist/
 frontend/.vite/
 frontend/coverage/
+.next/
+out/
+frontend-next/.next/
+frontend-next/out/
+frontend-next/coverage/
 *.tsbuildinfo
 
 # Environment files
