@@ -10,6 +10,16 @@ from app.schemas.auth import (
     UserProfileResponse,
     UserProfileUpdateRequest,
 )
+from app.schemas.team import (
+    ResponderCreate,
+    ResponderProfileResponse,
+    ResponderWithUserResponse,
+    TeamCreate,
+    TeamDetailResponse,
+    TeamMemberAddRequest,
+    TeamResponse,
+    TeamUpdate,
+)
 
 __all__ = [
     "RegisterRequest",
@@ -22,4 +32,13 @@ __all__ = [
     "UserProfileUpdateRequest",
     "UserMedicalProfileResponse",
     "UserMedicalProfileUpdateRequest",
+    "TeamCreate",
+    "TeamUpdate",
+    "TeamMemberAddRequest",
+    "ResponderCreate",
+    "ResponderProfileResponse",
+    "ResponderWithUserResponse",
+    "TeamResponse",
+    "TeamDetailResponse",
 ]
+

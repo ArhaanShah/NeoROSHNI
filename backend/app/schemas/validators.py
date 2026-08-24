@@ -31,3 +31,23 @@ def validate_longitude(value: Any) -> float:
     if not math.isfinite(longitude) or longitude < -180 or longitude > 180:
         raise ValueError("Longitude must be between -180 and 180")
     return longitude
+
+
+BADGE_RE = re.compile(r"^[A-Za-z0-9_-]{2,50}$")
+
+
+def validate_badge_number(value: str) -> str:
+    cleaned = value.strip()
+    if not BADGE_RE.fullmatch(cleaned):
+        raise ValueError("Badge number must be 2 to 50 alphanumeric characters, hyphens, or underscores")
+    return cleaned
+
+
+def sanitize_string(value: str, min_length: int = 1, max_length: int = 255) -> str:
+    cleaned = value.strip()
+    if len(cleaned) < min_length:
+        raise ValueError(f"String must contain at least {min_length} non-whitespace character(s)")
+    if len(cleaned) > max_length:
+        raise ValueError(f"String must not exceed {max_length} characters")
+    return cleaned
+
