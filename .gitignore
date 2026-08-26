@@ -54,6 +54,7 @@ test_*.db
 openapi.json
 backend/openapi.json
 frontend/openapi.json
+frontend-next/openapi.json
 
 
 # Git metadata
