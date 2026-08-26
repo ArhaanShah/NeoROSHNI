@@ -54,6 +54,22 @@ export default async function DashboardPage() {
           <dd style={styles.dd}>{user.is_active ? 'Active' : 'Inactive'}</dd>
         </dl>
 
+        {user.role === 'commander' && (
+          <div style={styles.roleActionBox}>
+            <a href="/dashboard/commander/teams" style={styles.actionBtn}>
+              Manage Teams & Responders →
+            </a>
+          </div>
+        )}
+
+        {user.role === 'responder' && (
+          <div style={styles.roleActionBox}>
+            <a href="/dashboard/responder/team" style={styles.actionBtn}>
+              View My Team & Teammates →
+            </a>
+          </div>
+        )}
+
         {/* Logout form — Server Action is invoked via form submission */}
         <form action={logout} style={styles.form}>
           <button type="submit" style={styles.logoutBtn}>
@@ -85,6 +101,18 @@ const styles = {
   dl: { margin: '0 0 1.5rem' },
   dt: { fontWeight: 600, marginTop: '.75rem', color: '#374151' },
   dd: { margin: '.25rem 0 0', color: '#6b7280' },
+  roleActionBox: { marginTop: '1.25rem', marginBottom: '0.5rem' },
+  actionBtn: {
+    display: 'block',
+    padding: '.625rem 1rem',
+    background: '#2563eb',
+    color: '#fff',
+    borderRadius: 6,
+    textDecoration: 'none',
+    textAlign: 'center' as const,
+    fontWeight: 500,
+    fontSize: '0.95rem',
+  },
   form: { marginTop: '1.5rem' },
   logoutBtn: {
     padding: '.5rem 1.25rem',
@@ -94,5 +122,6 @@ const styles = {
     borderRadius: 6,
     cursor: 'pointer',
     fontSize: '1rem',
+    width: '100%',
   },
 } as const
