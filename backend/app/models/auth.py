@@ -2,17 +2,16 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
-from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
     Index,
-    JSON,
     String,
     Text,
     UniqueConstraint,
@@ -22,7 +21,6 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-
 from app.models.team import ResponderProfile, Team
 
 
@@ -47,26 +45,26 @@ class User(Base):
         onupdate=func.now(),
     )
 
-    profile: Mapped["UserProfile | None"] = relationship(
+    profile: Mapped[UserProfile | None] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
         uselist=False,
     )
-    medical_profile: Mapped["UserMedicalProfile | None"] = relationship(
+    medical_profile: Mapped[UserMedicalProfile | None] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
         uselist=False,
     )
-    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
+    refresh_tokens: Mapped[list[RefreshToken]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
     )
-    responder_profile: Mapped["ResponderProfile | None"] = relationship(
+    responder_profile: Mapped[ResponderProfile | None] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
         uselist=False,
     )
-    commanded_teams: Mapped[list["Team"]] = relationship(
+    commanded_teams: Mapped[list[Team]] = relationship(
         back_populates="commander",
         cascade="all, delete-orphan",
         foreign_keys="Team.commander_id",

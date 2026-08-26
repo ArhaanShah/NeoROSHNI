@@ -48,6 +48,13 @@ htmlcov/
 # Database / local artifacts
 *.sqlite3
 *.db
+test_*.db
+
+# Generated API schemas / build artifacts
+openapi.json
+backend/openapi.json
+frontend/openapi.json
+
 
 # Git metadata
 .git/

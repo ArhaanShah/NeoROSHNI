@@ -65,4 +65,3 @@ def test_sanitize_string_validator() -> None:
         sanitize_string("   ")
     with pytest.raises(ValueError, match="exceed"):
         sanitize_string("A" * 256, max_length=255)
-

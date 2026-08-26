@@ -48,11 +48,11 @@ class Team(Base):
         onupdate=func.now(),
     )
 
-    commander: Mapped["User"] = relationship(
+    commander: Mapped[User] = relationship(
         back_populates="commanded_teams",
         foreign_keys=[commander_id],
     )
-    members: Mapped[list["ResponderProfile"]] = relationship(
+    members: Mapped[list[ResponderProfile]] = relationship(
         back_populates="team",
     )
 
@@ -89,10 +89,10 @@ class ResponderProfile(Base):
         onupdate=func.now(),
     )
 
-    user: Mapped["User"] = relationship(
+    user: Mapped[User] = relationship(
         back_populates="responder_profile",
     )
-    team: Mapped["Team | None"] = relationship(
+    team: Mapped[Team | None] = relationship(
         back_populates="members",
     )
 

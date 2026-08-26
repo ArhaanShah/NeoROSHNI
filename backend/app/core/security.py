@@ -3,8 +3,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from uuid import UUID
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import jwt
 from argon2 import PasswordHasher

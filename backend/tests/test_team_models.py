@@ -23,16 +23,17 @@ async def test_team_and_responder_creation_and_relationships() -> None:
         session.add(responder)
         await session.flush()
 
-        profile = ResponderProfile(user_id=responder.user_id, team_id=team.team_id, badge_number="B-101", specialization="Medic")
+        profile = ResponderProfile(
+            user_id=responder.user_id, team_id=team.team_id, badge_number="B-101", specialization="Medic"
+        )
         session.add(profile)
         await session.commit()
 
         # Verify relationship traversal
         res = await session.execute(
-            select(Team).where(Team.team_id == team.team_id).options(
-                selectinload(Team.commander),
-                selectinload(Team.members).selectinload(ResponderProfile.user)
-            )
+            select(Team)
+            .where(Team.team_id == team.team_id)
+            .options(selectinload(Team.commander), selectinload(Team.members).selectinload(ResponderProfile.user))
         )
         saved = res.scalar_one()
         assert saved.name == "Alpha Rescue"

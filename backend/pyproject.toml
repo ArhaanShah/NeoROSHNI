@@ -1,0 +1,60 @@
+[project]
+name = "neoroshni-backend"
+version = "0.1.0"
+description = "NeoROSHNI Backend API"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.117.1",
+    "uvicorn>=0.36.0",
+    "pydantic>=2.12.3",
+    "pydantic-settings>=2.10.1",
+    "sqlalchemy>=2.0.43",
+    "asyncpg>=0.31.0",
+    "aiosqlite>=0.21.0",
+    "alembic>=1.16.4",
+    "python-dotenv>=1.1.1",
+    "PyJWT>=2.10.1",
+    "argon2-cffi>=25.1.0",
+    "email-validator>=2.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+    "pytest-cov>=6.2.1",
+    "httpx>=0.28.1",
+    "ruff>=0.16.4",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "UP",    # pyupgrade
+    "B",     # flake8-bugbear
+    "BLE",   # flake8-blind-except (BLE001)
+    "RUF",   # ruff-specific rules
+]
+ignore = [
+    "B008",   # Do not perform function call in argument defaults (standard for FastAPI Depends)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.coverage.run]
+branch = false
+concurrency = ["greenlet", "thread"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+asyncio_mode = "strict"
+addopts = "--cov=app --cov-report=term-missing --cov-fail-under=85"

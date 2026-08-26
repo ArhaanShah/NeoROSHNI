@@ -28,4 +28,3 @@ def root() -> dict[str, str]:
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(teams.router)
-

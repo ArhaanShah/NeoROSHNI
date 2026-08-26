@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from sqlalchemy import select
@@ -10,8 +10,8 @@ from app.models.auth import RefreshToken, User, UserMedicalProfile, UserProfile
 
 @pytest.mark.asyncio
 async def test_auth_models_can_be_inserted_and_retrieved() -> None:
-    email = f"auth-smoke-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')}@example.com"
-    phone_number = f"+1555{datetime.now(timezone.utc).strftime('%f')}"
+    email = f"auth-smoke-{datetime.now(UTC).strftime('%Y%m%d%H%M%S%f')}@example.com"
+    phone_number = f"+1555{datetime.now(UTC).strftime('%f')}"
 
     async with db_session_factory() as session:
         user = User(
@@ -33,7 +33,7 @@ async def test_auth_models_can_be_inserted_and_retrieved() -> None:
         )
         medical = UserMedicalProfile(
             user_id=user.user_id,
-            public_user_code=f"AS-{datetime.now(timezone.utc).strftime('%f')}",
+            public_user_code=f"AS-{datetime.now(UTC).strftime('%f')}",
             blood_group="O+",
             known_allergies="Peanuts",
             chronic_conditions="None",
@@ -43,8 +43,8 @@ async def test_auth_models_can_be_inserted_and_retrieved() -> None:
         )
         refresh = RefreshToken(
             user_id=user.user_id,
-            token_hash=f"abc123hashed-token-{datetime.now(timezone.utc).strftime('%f')}",
-            expires_at=datetime.now(timezone.utc) + timedelta(days=7),
+            token_hash=f"abc123hashed-token-{datetime.now(UTC).strftime('%f')}",
+            expires_at=datetime.now(UTC) + timedelta(days=7),
         )
         session.add_all([profile, medical, refresh])
         await session.commit()
