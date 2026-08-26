@@ -13,7 +13,6 @@ from app.core.security import create_access_token, hash_password
 from app.database import db_session_factory
 from app.main import app
 from app.models.auth import User
-from app.models.team import ResponderProfile, Team
 
 
 async def _create_user(email: str, phone: str, role: str) -> tuple[User, str]:
@@ -254,7 +253,13 @@ async def test_role_rejection_matrix() -> None:
             await client.post(
                 "/commander/responders",
                 headers={"Authorization": f"Bearer {civilian_token}"},
-                json={"email": "a@a.com", "password": "pass", "phone_number": "+1", "full_name": "a", "badge_number": "1"},
+                json={
+                    "email": "a@a.com",
+                    "password": "pass",
+                    "phone_number": "+1",
+                    "full_name": "a",
+                    "badge_number": "1",
+                },
             )
         ).status_code == 403
 
@@ -266,9 +271,7 @@ async def test_role_rejection_matrix() -> None:
             await client.post("/teams", headers={"Authorization": f"Bearer {civilian_token}"}, json={"name": "T"})
         ).status_code == 403
 
-        assert (
-            await client.get("/teams", headers={"Authorization": f"Bearer {civilian_token}"})
-        ).status_code == 403
+        assert (await client.get("/teams", headers={"Authorization": f"Bearer {civilian_token}"})).status_code == 403
 
         assert (
             await client.get(f"/teams/{fake_id}", headers={"Authorization": f"Bearer {civilian_token}"})
@@ -287,7 +290,13 @@ async def test_role_rejection_matrix() -> None:
             await client.post(
                 "/commander/responders",
                 headers={"Authorization": f"Bearer {resp_token}"},
-                json={"email": "a@a.com", "password": "pass", "phone_number": "+1", "full_name": "a", "badge_number": "1"},
+                json={
+                    "email": "a@a.com",
+                    "password": "pass",
+                    "phone_number": "+1",
+                    "full_name": "a",
+                    "badge_number": "1",
+                },
             )
         ).status_code == 403
 
@@ -416,4 +425,3 @@ async def test_not_found_scenarios() -> None:
             headers={"Authorization": f"Bearer {cmd_token}"},
         )
         assert del_fake.status_code == 404
-

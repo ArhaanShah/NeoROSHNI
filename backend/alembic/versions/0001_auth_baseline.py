@@ -1,8 +1,8 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "0001_auth_baseline"
@@ -57,7 +57,9 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["user_id"], ["users.user_id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("user_id"),
     )
-    op.create_index(op.f("ix_user_medical_profiles_public_user_code"), "user_medical_profiles", ["public_user_code"], unique=True)
+    op.create_index(
+        op.f("ix_user_medical_profiles_public_user_code"), "user_medical_profiles", ["public_user_code"], unique=True
+    )
 
     op.create_table(
         "refresh_tokens",
@@ -86,5 +88,3 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_users_phone_number"), table_name="users")
     op.drop_index(op.f("ix_users_email"), table_name="users")
     op.drop_table("users")
-
-

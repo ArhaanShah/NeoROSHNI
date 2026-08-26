@@ -9,10 +9,11 @@ TEST_DB_PATH = BASE_DIR / "test_neoroshni.db"
 
 os.environ.setdefault("DATABASE_URL", f"sqlite+aiosqlite:///{TEST_DB_PATH.as_posix()}")
 
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator  # noqa: E402
 
-import pytest_asyncio
-from app.database import Base, engine
+import pytest_asyncio  # noqa: E402
+
+from app.database import Base, engine  # noqa: E402
 
 
 @pytest_asyncio.fixture(autouse=True)

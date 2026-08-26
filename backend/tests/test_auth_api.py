@@ -113,7 +113,9 @@ async def test_refresh_token_rotation_and_revocation() -> None:
         (["commander"], "responder", 403, 4),
     ],
 )
-async def test_role_checker_enforcement(allowed_roles: list[str], user_role: str, expected_status: int, idx: int) -> None:
+async def test_role_checker_enforcement(
+    allowed_roles: list[str], user_role: str, expected_status: int, idx: int
+) -> None:
     test_app = FastAPI()
 
     @test_app.get("/role-check")
@@ -136,3 +138,81 @@ async def test_role_checker_enforcement(allowed_roles: list[str], user_role: str
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
         res = await client.get("/role-check", headers={"Authorization": f"Bearer {token}"})
         assert res.status_code == expected_status
+
+
+@pytest.mark.asyncio
+async def test_auth_registration_duplicate_and_inactive_login() -> None:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        await _register(client, "orig_user@example.com", "+1555000555")
+
+        # Duplicate email
+        dup_email = await client.post(
+            "/auth/register",
+            json={
+                "email": "orig_user@example.com",
+                "password": "StrongPass123!",
+                "phone_number": "+1555000556",
+                "full_name": "Dup User",
+            },
+        )
+        assert dup_email.status_code == 409
+
+        # Duplicate phone
+        dup_phone = await client.post(
+            "/auth/register",
+            json={
+                "email": "other_user@example.com",
+                "password": "StrongPass123!",
+                "phone_number": "+1555000555",
+                "full_name": "Dup User",
+            },
+        )
+        assert dup_phone.status_code == 409
+
+        # Inactive user login
+        async with db_session_factory() as session:
+            inactive_u = User(
+                email="inactive@example.com",
+                hashed_password=create_access_token("fake", "civilian"),
+                phone_number="+1555000999",
+                role="civilian",
+                is_active=False,
+            )
+            # Actually hash password
+            from app.core.security import hash_password
+
+            inactive_u.hashed_password = hash_password("StrongPass123!")
+            session.add(inactive_u)
+            await session.commit()
+
+        inactive_login = await client.post(
+            "/auth/login",
+            json={"email": "inactive@example.com", "password": "StrongPass123!"},
+        )
+        assert inactive_login.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_auth_refresh_and_logout_edge_cases() -> None:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        # Invalid refresh token
+        bad_ref = await client.post("/auth/refresh", json={"refresh_token": "invalid.jwt.token"})
+        assert bad_ref.status_code == 401
+
+        # Logout with invalid token format returns 200 (idempotent)
+        bad_logout = await client.post("/auth/logout", json={"refresh_token": "invalid.token"})
+        assert bad_logout.status_code == 200
+
+        # Health and Root
+        h_res = await client.get("/health")
+        assert h_res.status_code == 200
+        assert h_res.json() == {"status": "ok"}
+
+        r_res = await client.get("/")
+        assert r_res.status_code == 200
+
+        # Missing bearer token
+        me_missing = await client.get("/users/me")
+        assert me_missing.status_code == 401

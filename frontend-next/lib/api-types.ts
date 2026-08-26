@@ -42,10 +42,80 @@ export interface UserMedicalProfileResponse {
 }
 
 export interface ApiError {
-  detail: string
+  detail: string | Array<{ loc: (string | number)[]; msg: string; type: string }>
 }
 
-/** Shape returned by auth Server Actions on validation/API failure. */
-export interface AuthActionError {
+/** Shape returned by auth & team Server Actions on validation/API failure. */
+export interface ActionError {
   error: string
+}
+
+export type AuthActionError = ActionError
+export type TeamActionError = ActionError
+
+// ---------------------------------------------------------------------------
+// Team & Responder Types (Sprint 2 C4)
+// ---------------------------------------------------------------------------
+
+export interface TeamCreate {
+  name: string
+}
+
+export interface TeamUpdate {
+  name?: string | null
+}
+
+export interface TeamMemberAddRequest {
+  responder_id: string
+}
+
+export interface ResponderCreate {
+  email: string
+  password: string
+  phone_number: string
+  full_name: string
+  badge_number: string
+  specialization?: string | null
+  team_id?: string | null
+}
+
+export interface ResponderProfileResponse {
+  user_id: string
+  team_id: string | null
+  badge_number: string
+  specialization: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ResponderWithUserResponse {
+  user_id: string
+  email: string
+  phone_number: string
+  full_name: string
+  badge_number: string
+  specialization: string | null
+  team_id: string | null
+  team_name: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface TeamResponse {
+  team_id: string
+  name: string
+  commander_id: string
+  member_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface TeamDetailResponse {
+  team_id: string
+  name: string
+  commander_id: string
+  created_at: string
+  updated_at: string
+  members: ResponderWithUserResponse[]
 }
