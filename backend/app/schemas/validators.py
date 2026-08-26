@@ -8,9 +8,10 @@ PHONE_RE = re.compile(r"^\+[1-9]\d{7,14}$")
 
 
 def validate_phone_number(value: str) -> str:
-    if not PHONE_RE.fullmatch(value):
+    cleaned = value.strip()
+    if not PHONE_RE.fullmatch(cleaned):
         raise ValueError("Phone number must be in E.164 format, for example +15551234567")
-    return value
+    return cleaned
 
 
 def validate_optional_phone_number(value: str | None) -> str | None:
@@ -50,4 +51,3 @@ def sanitize_string(value: str, min_length: int = 1, max_length: int = 255) -> s
     if len(cleaned) > max_length:
         raise ValueError(f"String must not exceed {max_length} characters")
     return cleaned
-

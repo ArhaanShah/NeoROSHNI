@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,6 +21,7 @@ from app.schemas.team import (
     TeamDetailResponse,
     TeamMemberAddRequest,
     TeamResponse,
+    TeamUpdate,
 )
 
 router = APIRouter(tags=["teams"])
@@ -207,11 +208,7 @@ async def list_teams(
     current_user: User = Depends(RoleChecker(["commander", "responder"])),
     db: AsyncSession = Depends(get_db),
 ) -> list[TeamResponse]:
-    stmt = (
-        select(Team)
-        .options(selectinload(Team.members))
-        .order_by(Team.created_at.desc())
-    )
+    stmt = select(Team).options(selectinload(Team.members)).order_by(Team.created_at.desc())
     teams = (await db.scalars(stmt)).all()
 
     return [
@@ -250,6 +247,43 @@ async def get_team(
     return _build_team_detail_response(team)
 
 
+@router.patch(
+    "/teams/{team_id}",
+    response_model=TeamResponse,
+)
+@router.put(
+    "/teams/{team_id}",
+    response_model=TeamResponse,
+)
+async def update_team(
+    team_id: UUID,
+    payload: TeamUpdate = Body(...),
+    current_user: User = Depends(RoleChecker(["commander"])),
+    db: AsyncSession = Depends(get_db),
+) -> TeamResponse:
+    team = await db.get(Team, team_id)
+    if team is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+
+    if payload.name is not None:
+        team.name = payload.name
+
+    await db.commit()
+    await db.refresh(team)
+
+    stmt = select(ResponderProfile).where(ResponderProfile.team_id == team_id)
+    members = (await db.scalars(stmt)).all()
+
+    return TeamResponse(
+        team_id=team.team_id,
+        name=team.name,
+        commander_id=team.commander_id,
+        member_count=len(members),
+        created_at=team.created_at,
+        updated_at=team.updated_at,
+    )
+
+
 @router.delete(
     "/teams/{team_id}",
 )
@@ -262,11 +296,7 @@ async def delete_team(
     if team is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
 
-    await db.execute(
-        update(ResponderProfile)
-        .where(ResponderProfile.team_id == team_id)
-        .values(team_id=None)
-    )
+    await db.execute(update(ResponderProfile).where(ResponderProfile.team_id == team_id).values(team_id=None))
     await db.delete(team)
     await db.commit()
 
